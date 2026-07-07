@@ -2,79 +2,413 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>महर्षि गार्गेय इण्टरमीडिएट कॉलेज — मैनेजमेंट पोर्टल</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>महर्षि गार्गेय इण्टरमीडिएट कॉलेज — फीस पोर्टल</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Hind Siliguri', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Noto Sans Devanagari', 'Poppins', sans-serif; background-color: #f1f5f9; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+        .input-focus { transition: all 0.2s ease-in-out; }
+        .input-focus:focus { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08); }
         
-        /* प्रिंट स्टाइल */
+        /* प्रिंट सेटिंग्स - सिंगल A4 शीट पर पूरी तरह फिट करने के लिए */
         @media print {
-            @page { size: A4 portrait; margin: 10mm; }
+            @page { size: A4 portrait; margin: 10mm 12mm; }
+            body { background: white; color: black; padding: 0; margin: 0; }
             .no-print { display: none !important; }
-            .print-grid { display: grid; grid-template-rows: repeat(2, 1fr); height: 275mm; gap: 5mm; }
-            .receipt-copy { 
-                border: 2px solid #1e3a8a !important; padding: 20px !important; position: relative; 
-                background: white !important; height: 135mm; box-sizing: border-box;
+            .print-area { display: block !important; }
+            
+            /* ग्रिड लेआउट: दोनों रसीदें एक पेज पर समान दूरी पर सेट होंगी */
+            .print-grid {
+                display: grid;
+                grid-template-rows: 1fr 1fr;
+                gap: 15mm;
+                height: 100vh;
+                box-sizing: border-box;
             }
-            .watermark {
-                position: absolute; top: 40%; left: 15%; font-size: 60px; color: rgba(30, 58, 138, 0.08);
-                transform: rotate(-30deg); font-weight: bold; pointer-events: none;
+            .receipt-copy {
+                border: 2px dashed #334155 !important;
+                padding: 16px 20px !important;
+                background: #fff !important;
+                border-radius: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                max-height: 125mm;
+                overflow: hidden;
+                position: relative;
+            }
+            /* रसीद के लिए सजावटी बॉर्डर लाइन */
+            .receipt-inner-border {
+                border: 1px solid #e2e8f0;
+                padding: 12px;
+                border-radius: 6px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
             }
         }
     </style>
 </head>
-<body class="p-4">
+<body class="text-slate-800 flex flex-col min-h-screen">
 
-    <header class="no-print bg-blue-900 text-white p-6 rounded-2xl shadow-lg mb-6 text-center">
-        <h1 class="text-3xl font-bold">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h1>
-        <p class="text-blue-200">फीस प्रबंधन एवं भुगतान पोर्टल</p>
+    <header class="bg-[#1E3A8A] text-white py-5 px-6 shadow-lg border-b-4 border-amber-400">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+            <div class="flex items-center gap-4 flex-col md:flex-row">
+                <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md no-print">
+                    <i data-lucide="school" class="w-8 h-8 text-[#1E3A8A]"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold font-sans tracking-wide">MAHARSHI GARGEY INTERMEDIATE COLLEGE</h1>
+                    <h2 class="text-lg md:text-xl font-semibold text-amber-300 mt-0.5">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h2>
+                    <p class="text-xs text-slate-300 mt-1 flex items-center justify-center md:justify-start gap-1">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400"></i> खरगपुर, महजना, हंडिया, प्रयागराज (UP) - 221005
+                    </p>
+                </div>
+            </div>
+            <div id="userDisplay" class="hidden no-print bg-slate-900/60 px-4 py-2 rounded-xl border border-slate-700/60 flex items-center gap-3 shadow-inner">
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">सक्रिय यूज़र</p>
+                    <p id="txtActiveRole" class="text-sm font-bold text-emerald-400"></p>
+                </div>
+                <div class="h-8 w-px bg-slate-700"></div>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition-colors p-1 rounded-lg hover:bg-slate-800" title="लॉगआउट"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+            </div>
+        </div>
     </header>
 
-    <main id="portalDashboard" class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-        <div id="workspaceGrid" class="hidden">
-            <div id="printOverlay" class="hidden print:block print-grid"></div>
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+        
+        <section id="loginScreen" class="no-print min-h-[60vh] flex items-center justify-center">
+            <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-slate-200/80 glass-card">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-blue-50 text-[#1E3A8A] rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                        <i data-lucide="shield-check" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">सुरक्षित लॉगिन पोर्टल</h3>
+                    <p class="text-xs text-slate-500 mt-1">पोर्टल का उपयोग करने के लिए अपनी क्रेडेंशियल दर्ज करें</p>
+                </div>
+                <form onsubmit="login(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">भूमिका चुनें</label>
+                        <select id="roleSelect" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
+                            <option value="" disabled selected>चुनें...</option>
+                            <option value="एडमिन (Admin)">एडमिन (Admin)</option>
+                            <option value="मैनेजर (Manager)">मैनेजर (Manager)</option>
+                            <option value="प्रधानाचार्य (Principal)">प्रधानाचार्य (Principal)</option>
+                            <option value="अकाउंटेंट (Accountant)">अकाउंटेंट (Accountant)</option>
+                            <option value="क्लर्क (Clerk)">क्लर्क (Clerk)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">सुरक्षा पासवर्ड</label>
+                        <input type="password" id="passwordInput" placeholder="••••••••" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
+                    </div>
+                    <p id="loginErr" class="hidden text-xs text-red-600 bg-red-50 p-3 rounded-lg border border-red-200 flex items-center gap-1.5"><i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i> गलत पासवर्ड! कृपया दोबारा प्रयास करें।</p>
+                    <button type="submit" class="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-blue-800 shadow-lg shadow-blue-900/20 active:scale-[0.99]">प्रवेश करें</button>
+                </form>
             </div>
-    </main>
+        </section>
 
-    <script>
-        // Updated Receipt Generator for Professional Look
-        function generateReceiptHTML(copyType) {
-            return `
-                <div class="receipt-copy">
-                    <div class="watermark">SECURED MGIC</div>
-                    <div class="text-center mb-6">
-                        <h2 class="text-2xl font-black text-blue-900">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h2>
-                        <p class="text-xs text-slate-500">खरगपुर, महजना, हंडिया, प्रयागराज - 221005</p>
-                        <div class="mt-2 inline-block bg-blue-900 text-white text-[10px] px-4 py-1 rounded font-bold uppercase tracking-widest">${copyType}</div>
+        <section id="portalDashboard" class="hidden no-print space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2 text-[#1E3A8A]"><i data-lucide="user-search" class="w-4 h-4"></i> छात्र खोज एवं सत्यापन विवरण</h3>
+                <form onsubmit="searchStudent(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">अनुक्रमांक / Enroll No *</label>
+                        <input type="text" id="rollSearch" placeholder="उदा. 120001" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono outline-none input-focus focus:border-blue-500 focus:ring-2 focus:ring-blue-100" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">कक्षा (Class) *</label>
+                        <select id="classSearch" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" required>
+                            <option value="" disabled selected>चुनें...</option>
+                            <option value="9">कक्षा 9</option>
+                            <option value="10">कक्षा 10</option>
+                            <option value="11">कक्षा 11</option>
+                            <option value="12">कक्षा 12</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">प्रवेश सत्र (Session) *</label>
+                        <select id="sessionSearch" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" required>
+                            <option value="2024-25">2024-25</option>
+                            <option value="2025-26">2025-26</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="btnSearch" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm py-2.5 rounded-xl font-semibold transition-all shadow-md shadow-emerald-700/10 flex items-center justify-center gap-2 active:scale-[0.98]"><i data-lucide="search" class="w-4 h-4"></i> विवरण खोजें</button>
+                </form>
+            </div>
+
+            <div id="workspaceGrid" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1.5"><i data-lucide="contact" class="w-4 h-4"></i> छात्र प्रोफाइल कार्ड</h4>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-5 items-start">
+                            <div class="w-20 h-20 bg-slate-100 rounded-2xl border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0 mx-auto sm:mx-0 shadow-inner">
+                                <i data-lucide="user" class="w-10 h-10"></i>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm w-full">
+                                <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">छात्र का नाम</span><span id="pName" class="font-bold text-slate-900">-</span></div>
+                                <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">पिता का नाम</span><span id="pFather" class="font-medium text-slate-800">-</span></div>
+                                <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">माता का नाम</span><span id="pMother" class="font-medium text-slate-800">-</span></div>
+                                <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">मोबाइल नंबर</span><span id="pMobile" class="font-mono text-slate-800">-</span></div>
+                                <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 sm:col-span-2"><span class="text-[10px] font-bold text-slate-400 block uppercase">सुरक्षित पहचान संदर्भ</span><span id="pAadhar" class="font-mono text-slate-600">-</span></div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 text-[12px] gap-2 mb-6 border-b pb-4">
-                        <div><strong>नाम:</strong> ${currentStudent["Student Name"]}</div>
-                        <div><strong>अनुक्रमांक:</strong> ${currentStudent["Roll No"]}</div>
-                        <div><strong>पिता:</strong> ${currentStudent["Father Name"]}</div>
-                        <div><strong>कक्षा:</strong> ${currentStudent["Class"]}</div>
-                    </div>
-
-                    <table class="w-full text-[11px] mb-6 border">
-                        <tr class="bg-blue-800 text-white"><th class="p-2">विवरण</th><th class="p-2">राशि (₹)</th><th class="p-2">दिनांक</th></tr>
-                        <tr><td class="p-2 border">फीस भुगतान (किस्त)</td><td class="p-2 border text-center">₹${lastPaymentAmount}</td><td class="p-2 border text-center">${lastTxDate}</td></tr>
-                    </table>
-
-                    <div class="flex justify-between items-center mt-auto border-t pt-4">
-                        <div class="text-[10px]">अधिकृत हस्ताक्षर<br>काउंटर क्लर्क</div>
-                        <div class="text-right text-[10px]">कुल बकाया: ₹${currentStudent["Due"]}</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border-l-4 border-blue-600 shadow-sm flex items-center justify-between">
+                            <div><span class="text-xs font-bold text-slate-400 block uppercase tracking-wider">कुल निर्धारित फीस</span><span id="mTotal" class="text-2xl font-bold font-sans text-slate-900">₹0</span></div>
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="layers" class="w-5 h-5"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border-l-4 border-emerald-600 shadow-sm flex items-center justify-between">
+                            <div><span class="text-xs font-bold text-slate-400 block uppercase tracking-wider">जमा की गई फीस</span><span id="mPaid" class="text-2xl font-bold font-sans text-emerald-600">₹0</span></div>
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><i data-lucide="check-square" class="w-5 h-5"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border-l-4 border-rose-600 shadow-sm flex items-center justify-between">
+                            <div><span class="text-xs font-bold text-slate-400 block uppercase tracking-wider">शेष देय राशि</span><span id="mDue" class="text-2xl font-bold font-sans text-rose-600">₹0</span></div>
+                            <div class="p-2 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="help-circle" class="w-5 h-5"></i></div>
+                        </div>
                     </div>
                 </div>
-            `;
+                
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <form onsubmit="submitPayment(event)" class="space-y-4">
+                        <h4 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-2 text-blue-900"><i data-lucide="credit-card" class="w-4 h-4 text-blue-600"></i> फीस काउंटर प्रविष्टि</h4>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">भुगतान राशि दर्ज करें (₹) *</label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-sans font-bold text-slate-400">₹</span>
+                                <input type="number" id="payAmt" min="1" placeholder="राशि दर्ज करें" class="w-full pl-8 pr-3 py-2.5 border border-slate-300 rounded-xl font-sans font-bold text-lg text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" required>
+                            </div>
+                        </div>
+                        <button type="submit" id="btnPay" class="w-full bg-[#1E3A8A] hover:bg-blue-800 text-white py-3 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-900/10 active:scale-[0.98]">फीस सुरक्षित जमा करें</button>
+                    </form>
+                    
+                    <button id="btnPrintReceipt" onclick="printReceipt()" class="hidden w-full bg-slate-900 hover:bg-black text-white py-3 rounded-xl text-sm font-bold mt-4 flex items-center justify-center gap-2 shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"><i data-lucide="printer" class="w-4 h-4"></i> डिजिटल रसीद प्रिंट करें</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="printOverlay" class="hidden print:block print-area print-grid"></section>
+    </main>
+
+    <div id="toast" class="hidden fixed bottom-6 right-6 bg-emerald-600 text-white px-5 py-3.5 rounded-xl text-sm shadow-2xl flex items-center gap-3 border border-emerald-500 animate-slide-up z-50"><i data-lucide="check-circle" class="w-5 h-5"></i> <span class="font-medium">फीस काउंटर प्रविष्टि सफलतापूर्वक अपडेट हो गई है!</span></div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbynewo0zGALqgdg8Qa65zLrQGzXKspuVcZx3fZyajbW3bdweRhPQtk8xSAyXshKqDw9/exec";
+        let activeUser = null, currentStudent = null, lastPaymentAmount = 0, lastTxId = "", lastTxDate = "", lastSlot = "";
+
+        document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
+
+        function login(e) {
+            e.preventDefault();
+            const r = document.getElementById("roleSelect").value, p = document.getElementById("passwordInput").value, err = document.getElementById("loginErr");
+            const token = r.includes("एडमिन") ? "Admin@123" : r.includes("मैनेजर") ? "Manager@123" : r.includes("प्रधानाचार्य") ? "Principal@123" : r.includes("अकाउंटेंट") ? "Accountant@123" : "Clerk@123";
+            if (p === token) {
+                activeUser = r; err.classList.add("hidden");
+                document.getElementById("loginScreen").classList.add("hidden");
+                document.getElementById("userDisplay").classList.remove("hidden");
+                document.getElementById("txtActiveRole").innerText = r;
+                document.getElementById("portalDashboard").classList.remove("hidden");
+            } else { err.classList.remove("hidden"); }
+        }
+
+        async function searchStudent(e) {
+            e.preventDefault();
+            const roll = document.getElementById("rollSearch").value.trim();
+            const cls = document.getElementById("classSearch").value;
+            const btn = document.getElementById("btnSearch");
+            
+            btn.disabled = true; 
+            btn.innerText = "सत्यापन जारी है...";
+            document.getElementById("btnPrintReceipt").classList.add("hidden");
+            lastPaymentAmount = 0;
+            
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            window[callbackName] = function(resData) {
+                if (resData.status === "success") {
+                    currentStudent = resData.data;
+                    document.getElementById("pName").innerText = currentStudent["Student Name"] || "-";
+                    document.getElementById("pFather").innerText = currentStudent["Father Name"] || "-";
+                    document.getElementById("pMother").innerText = currentStudent["Mother Name"] || "-";
+                    document.getElementById("pMobile").innerText = currentStudent["Mob No"] || "-";
+                    
+                    if (currentStudent["Adhar No"]) {
+                        let adharStr = String(currentStudent["Adhar No"]).trim();
+                        document.getElementById("pAadhar").innerText = adharStr.length >= 4 ? "•••• •••• " + adharStr.slice(-4) : adharStr;
+                    } else {
+                        document.getElementById("pAadhar").innerText = "-";
+                    }
+                    
+                    document.getElementById("mTotal").innerText = "₹" + (parseFloat(currentStudent["Total Fee"]) || 0).toLocaleString('en-IN');
+                    document.getElementById("mPaid").innerText = "₹" + (parseFloat(currentStudent["Total Paid"]) || 0).toLocaleString('en-IN');
+                    document.getElementById("mDue").innerText = "₹" + (parseFloat(currentStudent["Due"]) || 0).toLocaleString('en-IN');
+                    document.getElementById("workspaceGrid").classList.remove("hidden");
+                } else { 
+                    alert("छात्र रिकॉर्ड नहीं मिला! कृपया सही विवरण या कक्षा जांचें।"); 
+                }
+                
+                document.body.removeChild(script);
+                delete window[callbackName];
+                btn.disabled = false; 
+                btn.innerHTML = `<i data-lucide="search" class="w-4 h-4"></i> विवरण खोजें`; 
+                lucide.createIcons();
+            };
+
+            const script = document.createElement('script');
+            script.src = `${API_URL}?action=search&roll=${encodeURIComponent(roll)}&class=${encodeURIComponent(cls)}&callback=${callbackName}`;
+            script.onerror = function() {
+                alert("डेटाबेस कनेक्शन फेल हुआ।");
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="search" class="w-4 h-4"></i> विवरण खोजें`;
+                lucide.createIcons();
+            };
+            document.body.appendChild(script);
+        }
+
+        async function submitPayment(e) {
+            e.preventDefault();
+            const amt = parseFloat(document.getElementById("payAmt").value);
+            const dueVal = parseFloat(currentStudent["Due"]) || 0;
+            if (amt > dueVal) { alert("दर्ज राशि बकाया राशि से अधिक नहीं हो सकती!"); return; }
+            
+            const btn = document.getElementById("btnPay"); 
+            btn.disabled = true; 
+            btn.innerText = "डेटा सिंक हो रहा है...";
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify({ 
+                        roll: currentStudent["Roll No"] || currentStudent["Enroll No"], 
+                        class: currentStudent["Class"], 
+                        amount: amt, 
+                        user: activeUser 
+                    })
+                });
+                
+                lastPaymentAmount = amt;
+                lastTxDate = new Date().toLocaleDateString('en-IN');
+                lastTxId = "MGIC-TXN-" + Math.floor(100000 + Math.random() * 900000);
+                
+                currentStudent["Total Paid"] = (parseFloat(currentStudent["Total Paid"]) || 0) + amt;
+                currentStudent["Due"] = Math.max(0, dueVal - amt);
+                
+                for(let i = 1; i <= 5; i++) {
+                    if(!currentStudent[`T${i} Fee`] || parseFloat(currentStudent[`T${i} Fee`]) === 0) {
+                        currentStudent[`T${i} Fee`] = amt;
+                        currentStudent[`T${i} Date`] = lastTxDate;
+                        currentStudent[`T${i} Tr ID`] = lastTxId;
+                        lastSlot = `T${i}`;
+                        break;
+                    }
+                }
+
+                document.getElementById("mPaid").innerText = "₹" + currentStudent["Total Paid"].toLocaleString('en-IN');
+                document.getElementById("mDue").innerText = "₹" + currentStudent["Due"].toLocaleString('en-IN');
+                document.getElementById("payAmt").value = "";
+                
+                document.getElementById("btnPrintReceipt").classList.remove("hidden");
+                
+                const t = document.getElementById("toast"); 
+                t.classList.remove("hidden"); 
+                setTimeout(() => t.classList.add("hidden"), 4000);
+            } catch (err) { 
+                alert("भुगतान प्रक्रिया विफल हुई।"); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = "फीस जमा करें"; 
+            }
         }
 
         function printReceipt() {
+            if (!currentStudent || lastPaymentAmount === 0) { alert("पहले फीस जमा एंट्री पूरी करें!"); return; }
             const area = document.getElementById("printOverlay");
-            area.innerHTML = generateReceiptHTML("छात्र प्रति") + generateReceiptHTML("कार्यालय प्रति");
+            area.innerHTML = "";
+            
+            let rowsHtml = "";
+            for (let i = 1; i <= 5; i++) {
+                let fee = currentStudent[`T${i} Fee`];
+                let date = currentStudent[`T${i} Date`] || "-";
+                let tx = currentStudent[`T${i} Tr ID`] || "-";
+                
+                if(fee && parseFloat(fee) > 0) {
+                    rowsHtml += `
+                    <tr class="${lastSlot === 'T'+i ? 'bg-slate-100 font-bold' : 'border-b'} text-[11px]">
+                        <td class="p-1.5 border font-mono text-center">T${i}</td>
+                        <td class="p-1.5 border text-center font-bold">₹${parseFloat(fee).toLocaleString('en-IN')}</td>
+                        <td class="p-1.5 border text-center">${date}</td>
+                        <td class="p-1.5 border font-mono text-center text-[10px] text-slate-700">${tx}</td>
+                    </tr>`;
+                }
+            }
+
+            ["छात्र प्रति (Student Copy)", "कार्यालय प्रति (Office Copy)"].forEach(label => {
+                area.innerHTML += `
+                    <div class="receipt-copy">
+                        <div class="receipt-inner-border">
+                            <div>
+                                <div class="text-center border-b pb-1.5 mb-2">
+                                    <h2 class="text-base font-bold text-blue-900 tracking-tight font-sans">MAHARSHI GARGEY INTERMEDIATE COLLEGE</h2>
+                                    <h3 class="text-sm font-bold text-slate-800">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h3>
+                                    <p class="text-[9px] text-slate-500 leading-tight mt-0.5">खरगपुर, महजना, हंडिया, प्रयागराज (UP) - 221005</p>
+                                    <span class="text-[9px] bg-slate-900 text-white font-bold px-4 py-0.5 rounded mt-1.5 inline-block uppercase tracking-wider shadow-sm">${label}</span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] mb-3 bg-slate-50 p-2 rounded border border-slate-200">
+                                    <div><span class="text-slate-500 font-medium">छात्र का नाम:</span> <strong class="text-slate-900">${currentStudent["Student Name"]}</strong></div>
+                                    <div><span class="text-slate-500 font-medium">अनुक्रमांक / Roll No:</span> <span class="font-mono font-bold">${currentStudent["Roll No"] || '-'}</span></div>
+                                    <div><span class="text-slate-500 font-medium">पिता का नाम:</span> <span class="font-medium text-slate-800">${currentStudent["Father Name"]}</span></div>
+                                    <div><span class="text-slate-500 font-medium">कक्षा / Class:</span> <span class="font-bold text-blue-900">कक्षा ${currentStudent["Class"]}</span></div>
+                                    <div><span class="text-slate-500 font-medium">मोबाइल नंबर:</span> <span class="font-mono">${currentStudent["Mob No"] || '-'}</span></div>
+                                    <div><span class="text-slate-500 font-medium">शैक्षणिक सत्र:</span> <span class="font-medium">2024-25</span></div>
+                                </div>
+                                
+                                <p class="text-[10px] font-bold text-slate-700 mb-1 flex items-center gap-1">🕒 भुगतान इतिहास विवरण (Payment Ledger Ledger Entry):</p>
+                                <table class="w-full border-collapse border border-slate-300 text-left mb-3">
+                                    <thead>
+                                        <tr class="bg-slate-200 text-[10px] text-center font-bold text-slate-800 border-b border-slate-300">
+                                            <th class="p-1.5 border w-1/5">फीस कोड</th>
+                                            <th class="p-1.5 border w-1/4">जमा राशि</th>
+                                            <th class="p-1.5 border w-1/4">जमा तिथि</th>
+                                            <th class="p-1.5 border w-1/3">ट्रांजैक्शन आईडी</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div>
+                                <div class="bg-slate-100 p-2 rounded-lg text-[11px] grid grid-cols-3 text-center font-bold border border-slate-300 mb-2 shadow-inner">
+                                    <div><span class="block text-[8px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">कुल फीस</span>₹${(parseFloat(currentStudent["Total Fee"]) || 0).toLocaleString('en-IN')}</div>
+                                    <div class="text-emerald-700 border-x border-slate-300"><span class="block text-[8px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">कुल जमा</span>₹${(parseFloat(currentStudent["Total Paid"]) || 0).toLocaleString('en-IN')}</div>
+                                    <div class="text-rose-600"><span class="block text-[8px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">शेष देय राशि</span>₹${(parseFloat(currentStudent["Due"]) || 0).toLocaleString('en-IN')}</div>
+                                </div>
+                                <div class="text-[8px] text-slate-400 italic mb-2 leading-tight">निर्देश: यह कंप्यूटर जनित रसीद है। किसी भी विसंगति के मामले में विद्यालय रिकॉर्ड ही अंतिम रूप से मान्य माना जाएगा।</div>
+                                <div class="flex justify-between items-end mt-4 text-[10px] text-slate-600 px-1">
+                                    <div class="italic border-t border-slate-300 border-dashed pt-1 px-2">अभिभावक हस्ताक्षर</div>
+                                    <div class="text-center border-t border-slate-400 w-28 pt-1 font-bold text-slate-800">अधिकृत कैशियर / क्लर्क</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
             window.print();
         }
+        
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
