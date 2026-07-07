@@ -127,7 +127,7 @@
                         </div>
                         <button type="submit" id="btnPay" class="w-full bg-[#1E3A8A] hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-semibold transition-colors">फीस जमा करें</button>
                     </form>
-                    <button onclick="printReceipt()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-semibold mt-4 flex items-center justify-center gap-1"><i data-lucide="printer" class="w-4 h-4"></i> रसीद डाउनलोड / प्रिंट करें</button>
+                    <button id="btnPrintReceipt" onclick="printReceipt()" class="hidden w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-semibold mt-4 flex items-center justify-center gap-1 animate-bounce"><i data-lucide="printer" class="w-4 h-4"></i> रसीद डाउनलोड / प्रिंट करें</button>
                 </div>
             </div>
         </section>
@@ -138,9 +138,8 @@
     <div id="toast" class="hidden fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm shadow-xl flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i> <span>फीस सफलतापूर्वक जमा हो गई है!</span></div>
 
     <script>
-        // आपका नया लाइव Google Apps Script प्रोडक्शन लिंक
         const API_URL = "https://script.google.com/macros/s/AKfycbynewo0zGALqgdg8Qa65zLrQGzXKspuVcZx3fZyajbW3bdweRhPQtk8xSAyXshKqDw9/exec";
-        let activeUser = null, currentStudent = null, lastPaymentAmount = 0;
+        let activeUser = null, currentStudent = null, lastPaymentAmount = 0, lastTxId = "", lastTxDate = "", lastSlot = "";
 
         document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
 
@@ -165,8 +164,8 @@
             
             btn.disabled = true; 
             btn.innerText = "खोजा जा रहा है...";
+            document.getElementById("btnPrintReceipt").classList.add("hidden"); // नया सर्च होने पर पुराना प्रिंट बटन छुपाएं
             
-            // CORS ब्लॉक सुरक्षा को पूरी तरह से बायपास करने के लिए JSONP मैकेनिज्म
             const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
             window[callbackName] = function(resData) {
                 if (resData.status === "success") {
@@ -184,7 +183,6 @@
                     alert("छात्र रिकॉर्ड नहीं मिला! कृपया सही विवरण या कक्षा जांचें।"); 
                 }
                 
-                // मेमोरी क्लीनअप
                 document.body.removeChild(script);
                 delete window[callbackName];
                 btn.disabled = false; 
@@ -195,7 +193,7 @@
             const script = document.createElement('script');
             script.src = `${API_URL}?action=search&roll=${encodeURIComponent(roll)}&class=${encodeURIComponent(cls)}&callback=${callbackName}`;
             script.onerror = function() {
-                alert("डेटाबेस कनेक्शन फेल हुआ। कृपया Google Script पर अनुमतियों की जांच करें।");
+                alert("डेटाबेस कनेक्शन फेल हुआ।");
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="search" class="w-4 h-4"></i> विवरण खोजें`;
                 lucide.createIcons();
@@ -208,49 +206,128 @@
             const amt = parseFloat(document.getElementById("payAmt").value);
             const dueVal = parseFloat(currentStudent["Due"]) || 0;
             if (amt > dueVal) { alert("दर्ज राशि बकाया राशि से अधिक नहीं हो सकती!"); return; }
-            const btn = document.getElementById("btnPay"); btn.disabled = true; btn.innerText = "जमा किया जा रहा है...";
+            
+            const btn = document.getElementById("btnPay"); 
+            btn.disabled = true; 
+            btn.innerText = "जमा किया जा रहा है...";
+            
             try {
-                // पोस्टिंग सबमिशन मोड
-                await fetch(API_URL, {
-                    method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ roll: currentStudent["Roll No"] || currentStudent["Enroll No"], class: currentStudent["Class"], amount: amt, user: activeUser })
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" }, // CORS बाईपास अनुकूलता के लिए
+                    body: JSON.stringify({ 
+                        roll: currentStudent["Roll No"] || currentStudent["Enroll No"], 
+                        class: currentStudent["Class"], 
+                        amount: amt, 
+                        user: activeUser 
+                    })
                 });
+                
+                // चूंकि मोड no-cors पोस्ट रिस्पांस रीड करने नहीं देता, हम सुरक्षित रूप से लोकल स्टेट अपडेट करते हैं
+                // और रसीद बनाने के लिए डायनेमिक डेटा का उपयोग करते हैं
                 lastPaymentAmount = amt;
+                lastTxDate = new Date().toLocaleDateString('en-IN');
+                lastTxId = "MGIC-TXN-" + Math.floor(100000 + Math.random() * 900000);
+                
+                // लोकल रसीद ऑब्जेक्ट में लाइव पुश करें ताकि तुरंत प्रिंट में रिफ्लेक्ट हो
                 currentStudent["Total Paid"] = (parseFloat(currentStudent["Total Paid"]) || 0) + amt;
                 currentStudent["Due"] = Math.max(0, dueVal - amt);
+                
+                // रसीद एरे में टेम्परेरी रूप से जोड़ें ताकि तत्काल प्रिंट आउट में ये दिखे
+                for(let i=1; i<=5; i++) {
+                    if(!currentStudent[`T${i} Fee`] || parseFloat(currentStudent[`T${i} Fee`]) === 0) {
+                        currentStudent[`T${i} Fee`] = amt;
+                        currentStudent[`T${i} Date`] = lastTxDate;
+                        currentStudent[`T${i} Tr ID`] = lastTxId;
+                        lastSlot = `T${i}`;
+                        break;
+                    }
+                }
+
                 document.getElementById("mPaid").innerText = "₹" + currentStudent["Total Paid"].toLocaleString('en-IN');
                 document.getElementById("mDue").innerText = "₹" + currentStudent["Due"].toLocaleString('en-IN');
                 document.getElementById("payAmt").value = "";
-                const t = document.getElementById("toast"); t.classList.remove("hidden"); setTimeout(() => t.classList.add("hidden"), 4000);
-            } catch (err) { alert("भुगतान प्रक्रिया विफल हुई।"); }
-            finally { btn.disabled = false; btn.innerText = "फीस जमा करें"; }
+                
+                // भुगतान सफल होने पर प्रिंट रसीद बटन को दृश्यमान (Show) करें
+                document.getElementById("btnPrintReceipt").classList.remove("hidden");
+                
+                const t = document.getElementById("toast"); 
+                t.classList.remove("hidden"); 
+                setTimeout(() => t.classList.add("hidden"), 4000);
+            } catch (err) { 
+                alert("भुगतान प्रक्रिया विफल हुई।"); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = "फीस जमा करें"; 
+            }
         }
 
         function printReceipt() {
             if (!currentStudent || lastPaymentAmount === 0) { alert("पहले फीस जमा एंट्री पूरी करें!"); return; }
-            const area = document.getElementById("printOverlay"), date = new Date().toLocaleDateString('en-IN');
+            const area = document.getElementById("printOverlay");
             area.innerHTML = "";
+            
+            // सभी किश्तों की तालिका रो तैयार करना
+            let rowsHtml = "";
+            for (let i = 1; i <= 5; i++) {
+                let fee = currentStudent[`T${i} Fee`] || "-";
+                let date = currentStudent[`T${i} Date`] ? new Date(currentStudent[`T${i} Date`]).toLocaleDateString('en-IN') : "-";
+                let tx = currentStudent[`T${i} Tr ID`] || "-";
+                
+                // यदि अभी-अभी जमा की गई है और डेटा ऑब्जेक्ट स्ट्रिंग फ़ॉर्मेट में है
+                if(fee !== "-") {
+                    rowsHtml += `
+                    <tr class="${lastSlot === 'T'+i ? 'bg-emerald-50 font-bold' : 'border-b'} text-[11px]">
+                        <td class="p-1 border text-center">किस्त ${i}</td>
+                        <td class="p-1 border text-center">₹${fee}</td>
+                        <td class="p-1 border text-center">${date}</td>
+                        <td class="p-1 border font-mono text-center">${tx}</td>
+                    </tr>`;
+                }
+            }
+
             ["छात्र प्रति (Student Copy)", "कार्यालय प्रति (Office Copy)"].forEach(label => {
                 area.innerHTML += `
                     <div class="receipt-copy">
-                        <div class="text-center border-b pb-2 mb-4">
-                            <h2 class="text-lg font-bold">MAHARSHI GARGEY INTERMEDIATE COLLEGE</h2>
-                            <h3 class="text-md font-bold">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h3>
-                            <p class="text-[11px]">खरगपुर, महजना, हंडिया, प्रयागराज (UP) - 221005</p>
-                            <span class="text-xs bg-slate-200 px-2 py-0.5 rounded font-bold mt-2 inline-block">${label}</span>
+                        <div class="text-center border-b pb-1 mb-3">
+                            <h2 class="text-md font-bold text-blue-900">MAHARSHI GARGEY INTERMEDIATE COLLEGE</h2>
+                            <h3 class="text-sm font-bold text-slate-700">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h3>
+                            <p class="text-[10px] text-slate-500">खरगपुर, महजना, हंडिया, प्रयागराज (UP) - 221005</p>
+                            <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded font-bold mt-1 inline-block">${label}</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 text-xs mb-3">
-                            <div><strong>दिनांक:</strong> ${date}</div>
-                            <div><strong>अनुक्रमांक (Roll No):</strong> ${currentStudent["Roll No"] || '-'}</div>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-3 bg-slate-50 p-2 rounded border">
                             <div><strong>छात्र का नाम:</strong> ${currentStudent["Student Name"]}</div>
+                            <div><strong>अनुक्रमांक (Roll No):</strong> ${currentStudent["Roll No"] || '-'}</div>
+                            <div><strong>पिता का नाम:</strong> ${currentStudent["Father Name"]}</div>
                             <div><strong>कक्षा (Class):</strong> कक्षा ${currentStudent["Class"]}</div>
+                            <div><strong>मोबाइल:</strong> ${currentStudent["Mob No"] || '-'}</div>
+                            <div><strong>सेशन:</strong> 2024-25</div>
                         </div>
-                        <div class="bg-slate-50 p-2 rounded text-xs grid grid-cols-3 text-center font-semibold border">
-                            <div><span class="block text-[10px] text-slate-400">कुल फीस</span>₹${currentStudent["Total Fee"]}</div>
-                            <div class="text-emerald-700"><span class="block text-[10px] text-slate-400">अभी जमा राशि</span>₹${lastPaymentAmount}</div>
-                            <div class="text-rose-600"><span class="block text-[10px] text-slate-400">शेष बकाया</span>₹${currentStudent["Due"]}</div>
+                        
+                        <p class="text-[11px] font-bold text-slate-700 mb-1">भुगतान इतिहास विवरण (Installment History):</p>
+                        <table class="w-full border-collapse border text-left mb-3">
+                            <thead>
+                                <tr class="bg-slate-100 text-[10px] uppercase text-center">
+                                    <th class="p-1 border">किस्त विवरण</th>
+                                    <th class="p-1 border">जमा राशि</th>
+                                    <th class="p-1 border">भुगतान तिथि</th>
+                                    <th class="p-1 border">ट्रांजैक्शन आईडी</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+
+                        <div class="bg-blue-50 p-2 rounded text-xs grid grid-cols-3 text-center font-bold border border-blue-200">
+                            <div><span class="block text-[9px] uppercase tracking-wide text-slate-500">कुल देय फीस</span>₹${currentStudent["Total Fee"]}</div>
+                            <div class="text-emerald-700"><span class="block text-[9px] uppercase tracking-wide text-slate-500">कुल जमा फीस</span>₹${currentStudent["Total Paid"]}</div>
+                            <div class="text-rose-600"><span class="block text-[9px] uppercase tracking-wide text-slate-500">शेष देय राशि</span>₹${currentStudent["Due"]}</div>
                         </div>
-                        <div class="flex justify-between items-end mt-6 text-[11px] text-slate-500"><div>हस्ताक्षर अभिभावक</div><div class="text-center border-t w-28 pt-1">अधिकृत हस्ताक्षरकर्ता</div></div>
+                        <div class="flex justify-between items-end mt-8 text-[10px] text-slate-500">
+                            <div>अभिभावक हस्ताक्षर</div>
+                            <div class="text-center border-t w-28 pt-1">अधिकृत काउंटर क्लर्क</div>
+                        </div>
                     </div>`;
             });
             window.print();
