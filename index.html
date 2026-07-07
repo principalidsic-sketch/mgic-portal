@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAHARSHI GARGEY INTERMEDIATE COLLEGE — Fees Portal</title>
+    <title>महर्षि गार्गेय इण्टरमीडिएट कॉलेज — फीस पोर्टल</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +13,7 @@
     <style>
         body { font-family: 'Noto Sans Devanagari', 'Poppins', sans-serif; background-color: #f1f5f9; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); }
+        
         @media print {
             @page { size: A4 portrait; margin: 10mm 12mm; }
             body { background: white; color: black; padding: 0; margin: 0; }
@@ -31,11 +32,16 @@
             <div>
                 <h1 class="text-xl md:text-2xl font-bold font-sans tracking-wide">MAHARSHI GARGEY INTERMEDIATE COLLEGE</h1>
                 <h2 class="text-lg md:text-xl font-semibold text-amber-300 mt-0.5">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h2>
-                <p class="text-xs text-slate-300 mt-1"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400 inline"></i> Kharagpur, Mahajana, Handia, Prayagraj (UP) - 221005</p>
+                <p class="text-xs text-slate-300 mt-1 flex items-center justify-center md:justify-start gap-1">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400"></i> खरगपुर, महजना, हंडिया, प्रयागराज (UP) - 221005
+                </p>
             </div>
-            <div id="userDisplay" class="hidden no-print bg-slate-900/60 px-4 py-2 rounded-xl flex items-center gap-3">
-                <span id="txtActiveRole" class="text-sm font-bold text-emerald-400"></span>
-                <button onclick="logout()" class="text-slate-400 hover:text-red-400"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+            <div id="userDisplay" class="hidden no-print bg-slate-900/60 px-4 py-2 rounded-xl flex items-center gap-3 border border-slate-700">
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-400">सक्रिय यूज़र</p>
+                    <p id="txtActiveRole" class="text-sm font-bold text-emerald-400"></p>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition-colors"><i data-lucide="log-out" class="w-4 h-4"></i></button>
             </div>
         </div>
     </header>
@@ -44,70 +50,92 @@
         
         <section id="loadingDbScreen" class="no-print min-h-[50vh] flex flex-col items-center justify-center space-y-4">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A]"></div>
-            <p class="text-sm text-slate-600">Parsing sheet "Master_Data" from data.xlsx...</p>
+            <p class="text-sm text-slate-600 font-medium">डेटाबेस फाइल (Master_Data) लोड की जा रही है, कृपया प्रतीक्षा करें...</p>
         </section>
 
-        <section id="loginScreen" class="hidden no-print min-h-[60vh] flex items-center justify-center">
-            <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border glass-card">
-                <h3 class="text-xl font-bold text-slate-800 text-center mb-4">Secure Login Portal</h3>
+        <section id="loginScreen" class="hidden no-print min-h-[55vh] flex items-center justify-center">
+            <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-slate-200 glass-card">
+                <div class="text-center mb-6">
+                    <div class="w-14 h-14 bg-blue-50 text-[#1E3A8A] rounded-full flex items-center justify-center mx-auto mb-2 shadow-inner"><i data-lucide="lock" class="w-7 h-7"></i></div>
+                    <h3 class="text-xl font-bold text-slate-800">सुरक्षित लॉगिन पोर्टल</h3>
+                    <p class="text-xs text-slate-500 mt-1">पोर्टल में प्रवेश के लिए अपनी भूमिका और क्रेडेंशियल दर्ज करें</p>
+                </div>
                 <form onsubmit="login(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Select Role</label>
-                        <select id="roleSelect" class="w-full px-3 py-2 border rounded-xl bg-white text-sm outline-none">
-                            <option value="Clerk (Counter)">Clerk (Counter)</option>
-                            <option value="Admin">Admin</option>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">भूमिका चुनें (Select Role)</label>
+                        <select id="roleSelect" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-sm outline-none focus:border-blue-500" required>
+                            <option value="" disabled selected>चुनें...</option>
+                            <option value="एडमिन (Admin)">एडमिन (Admin)</option>
+                            <option value="मैनेजर (Manager)">मैनेजर (Manager)</option>
+                            <option value="प्रधानाचार्य (Principal)">प्रधानाचार्य (Principal)</option>
+                            <option value="अकाउंटेंट (Accountant)">अकाउंटेंट (Accountant)</option>
+                            <option value="क्लर्क (Clerk)">क्लर्क (Clerk)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Security Password</label>
-                        <input type="password" id="passwordInput" placeholder="••••••••" class="w-full px-3 py-2 border rounded-xl text-sm outline-none" required>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">सुरक्षा पासवर्ड (Password)</label>
+                        <input type="password" id="passwordInput" placeholder="••••••••" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" required>
                     </div>
-                    <p id="loginErr" class="hidden text-xs text-red-600">Incorrect password! Use 123</p>
-                    <button type="submit" class="w-full bg-[#1E3A8A] text-white py-2.5 rounded-xl font-semibold">Enter Portal</button>
+                    <p id="loginErr" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 font-medium">गलत पासवर्ड! कृपया सही टोकन दर्ज करें।</p>
+                    <button type="submit" class="w-full bg-[#1E3A8A] text-white py-3 rounded-xl text-sm font-semibold shadow-md transition-all hover:bg-blue-800">प्रवेश करें</button>
                 </form>
             </div>
         </section>
 
         <section id="portalDashboard" class="hidden no-print space-y-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="text-sm font-bold text-slate-700 mb-4 border-b pb-2">Student Search Engine</h3>
-                <form onsubmit="searchStudent(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <h3 class="text-sm font-bold text-slate-700 mb-4 border-b pb-2 flex items-center gap-1.5"><i data-lucide="search" class="w-4 h-4 text-blue-600"></i> छात्र खोज इंजन (Search Engine)</h3>
+                <form onsubmit="searchStudent(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Enroll No *</label>
-                        <input type="text" id="enrollSearch" placeholder="e.g. 90001, 100001" class="w-full px-3 py-2 border rounded-xl text-sm font-mono outline-none" required>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Enroll No या अनुक्रमांक *</label>
+                        <input type="text" id="enrollSearch" placeholder="उदा. 90001, 100001" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono outline-none focus:border-blue-500" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Class *</label>
-                        <select id="classSearch" class="w-full px-3 py-2 border rounded-xl bg-white text-sm outline-none" required>
-                            <option value="9">Class 9</option>
-                            <option value="10">Class 10</option>
-                            <option value="11">Class 11</option>
-                            <option value="12">Class 12</option>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">कक्षा (Class) *</label>
+                        <select id="classSearch" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-sm outline-none focus:border-blue-500" required>
+                            <option value="" disabled selected>चुनें...</option>
+                            <option value="9">कक्षा 9</option>
+                            <option value="10">कक्षा 10</option>
+                            <option value="11">कक्षा 11</option>
+                            <option value="12">कक्षा 12</option>
                         </select>
                     </div>
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2"><i data-lucide="search" class="w-4 h-4"></i> Search Profile</button>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">सत्र (Session) *</label>
+                        <select id="sessionSearch" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white text-sm outline-none focus:border-blue-500" required>
+                            <option value="2025-26">2025-26</option>
+                            <option value="2024-25">2024-25</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm py-2.5 rounded-xl font-semibold shadow-sm transition-colors flex items-center justify-center gap-1.5"><i data-lucide="search" class="w-4 h-4"></i> विवरण खोजें</button>
                 </form>
             </div>
 
             <div id="workspaceGrid" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="bg-white p-6 rounded-2xl border">
-                        <h4 class="text-sm font-bold text-blue-800 mb-4 border-b pb-2">Student Information Card</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div class="bg-slate-50 p-2.5 rounded-xl"><span class="text-[10px] text-slate-400 block">Student Name</span><span id="pName" class="font-bold">-</span></div>
-                            <div class="bg-slate-50 p-2.5 rounded-xl"><span class="text-[10px] text-slate-400 block">Father's Name</span><span id="pFather" class="font-medium">-</span></div>
-                            <div class="bg-slate-50 p-2.5 rounded-xl"><span class="text-[10px] text-slate-400 block">Mother's Name</span><span id="pMother" class="font-medium">-</span></div>
-                            <div class="bg-slate-50 p-2.5 rounded-xl"><span class="text-[10px] text-slate-400 block">Mobile No</span><span id="pMobile" class="font-mono">-</span></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-blue-800 mb-4 flex items-center gap-1.5 border-b pb-2"><i data-lucide="user" class="w-4 h-4"></i> छात्र प्रोफाइल एवं विवरण कार्ड</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-6">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">Student Name</span><span id="pName" class="font-bold text-slate-900 text-base">-</span></div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">Father's Name</span><span id="pFather" class="font-medium text-slate-800">-</span></div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">Mother's Name</span><span id="pMother" class="font-medium text-slate-800">-</span></div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[10px] font-bold text-slate-400 block uppercase">Mobile Number</span><span id="pMobile" class="font-mono text-slate-800">-</span></div>
                         </div>
 
-                        <div class="border-t mt-4 pt-4">
-                            <h5 class="text-xs font-bold text-slate-700 mb-3">Fee Instalment Ledgers</h5>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs border rounded-xl overflow-hidden">
+                        <div class="border-t border-slate-100 pt-4">
+                            <h5 class="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1"><i data-lucide="history" class="w-3.5 h-3.5 text-slate-500"></i> Previous Terms Payment Ledgers (भुगतान विवरण इतिहास)</h5>
+                            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                <table class="w-full text-left text-xs border-collapse">
                                     <thead>
-                                        <tr class="bg-slate-50 border-b"><th class="p-2 text-center">Term</th><th class="p-2 text-center">Amount</th><th class="p-2 text-center">Date</th><th class="p-2 text-center">Transaction ID</th></tr>
+                                        <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                                            <th class="p-2.5 text-center">Term Code</th>
+                                            <th class="p-2.5 text-center">Deposited Amt</th>
+                                            <th class="p-2.5 text-center">Payment Date</th>
+                                            <th class="p-2.5 text-center">Unique Transaction ID</th>
+                                        </tr>
                                     </thead>
-                                    <tbody id="dbReceiptRows" class="divide-y bg-white"></tbody>
+                                    <tbody id="dbReceiptRows" class="divide-y divide-slate-100 bg-white">
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
@@ -115,27 +143,31 @@
                     
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div class="bg-white p-5 rounded-2xl border-l-4 border-blue-600 shadow-sm">
-                            <span class="text-xs font-bold text-slate-400 block">Total Assigned Fee</span><span id="mTotal" class="text-2xl font-bold">₹0</span>
+                            <span class="text-xs font-bold text-slate-400 block uppercase tracking-wide">Total Fee (कुल फीस)</span>
+                            <span id="mTotal" class="text-2xl font-bold font-sans text-slate-900">₹0</span>
                         </div>
                         <div class="bg-white p-5 rounded-2xl border-l-4 border-emerald-600 shadow-sm">
-                            <span class="text-xs font-bold text-slate-400 block">Total Deposited Paid</span><span id="mPaid" class="text-2xl font-bold text-emerald-600">₹0</span>
+                            <span class="text-xs font-bold text-slate-400 block uppercase tracking-wide">Total Paid (कुल जमा)</span>
+                            <span id="mPaid" class="text-2xl font-bold font-sans text-emerald-600">₹0</span>
                         </div>
                         <div class="bg-white p-5 rounded-2xl border-l-4 border-rose-600 shadow-sm">
-                            <span class="text-xs font-bold text-slate-400 block">Net Balance Due</span><span id="mDue" class="text-2xl font-bold text-rose-600">₹0</span>
+                            <span class="text-xs font-bold text-slate-400 block uppercase tracking-wide">Net Due (शेष देय राशि)</span>
+                            <span id="mDue" class="text-2xl font-bold font-sans text-rose-600">₹0</span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="bg-white p-6 rounded-2xl border flex flex-col justify-between">
-                    <form onsubmit="submitPayment(event)" class="space-y-4">
-                        <h4 class="text-sm font-bold border-b pb-2">Collect Counter Cash</h4>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between min-h-[380px]">
+                    <form onsubmit="submitPayment(event)" class="space-y-5">
+                        <h4 class="text-sm font-bold text-slate-800 border-b pb-2 flex items-center gap-1.5"><i data-lucide="wallet" class="w-4 h-4 text-blue-600"></i> काउंटर नकद संकलन (Fees Collection)</h4>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Payment Amount (₹) *</label>
-                            <input type="number" id="payAmt" min="1" placeholder="Enter Cash Amount" class="w-full px-3 py-2.5 border rounded-xl font-bold text-lg" required>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">जमा की जाने वाली राशि (₹) *</label>
+                            <input type="number" id="payAmt" min="1" placeholder="अंकों में राशि दर्ज करें" class="w-full px-4 py-3 border border-slate-300 rounded-xl font-sans font-bold text-xl text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" required>
                         </div>
-                        <button type="submit" class="w-full bg-[#1E3A8A] text-white py-3 rounded-xl font-bold">Process Payment Entry</button>
+                        <button type="submit" id="btnPay" class="w-full bg-[#1E3A8A] hover:bg-blue-800 text-white py-3 rounded-xl text-sm font-semibold shadow-md transition-all">फीस एंट्री प्रोसेस करें</button>
                     </form>
-                    <button id="btnPrintReceipt" onclick="printReceipt()" class="hidden w-full bg-slate-900 text-white py-3 rounded-xl font-bold mt-4 flex items-center justify-center gap-2"><i data-lucide="printer" class="w-4 h-4"></i> Print Receipt copies</button>
+                    
+                    <button id="btnPrintReceipt" onclick="printReceipt()" class="hidden w-full bg-slate-900 hover:bg-slate-950 text-white py-3 rounded-xl text-sm font-bold mt-4 flex items-center justify-center gap-2 shadow-lg border border-slate-800 transition-transform active:scale-95"><i data-lucide="printer" class="w-4 h-4 animate-pulse"></i> प्रोफ़ेशनल रसीद प्रिंट करें</button>
                 </div>
             </div>
         </section>
@@ -143,44 +175,48 @@
         <section id="printOverlay" class="hidden print:block print-area print-grid"></section>
     </main>
 
-    <div id="toast" class="hidden fixed bottom-6 right-6 bg-emerald-600 text-white px-5 py-3.5 rounded-xl z-50"><span>Transaction completed and cached successfully!</span></div>
+    <div id="toast" class="hidden fixed bottom-6 right-6 bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-2xl z-50 flex items-center gap-2 font-medium">
+        <i data-lucide="check-circle" class="w-4 h-4"></i> <span>लेनदेन पूरा हुआ! स्थानीय डेटाबेस अपडेट कर दिया गया है।</span>
+    </div>
 
     <script>
         const EXCEL_FILE_NAME = "data.xlsx";
-        let currentStudent = null, lastSlot = "";
+        let activeUser = null, currentStudent = null, lastPaymentAmount = 0, lastTxId = "", lastTxDate = "", lastSlot = "";
 
-        window.addEventListener("DOMContentLoaded", () => { fetchExcelDatabase(); });
+        window.addEventListener("DOMContentLoaded", () => { fetchAndParseExcel(); });
 
-        async function fetchExcelDatabase() {
+        // Step 1: Read local data.xlsx from repo root without using any third party slow API
+        async function fetchAndParseExcel() {
             try {
-                if(localStorage.getItem("school_db")) { showLoginScreen(); return; }
-                const res = await fetch(EXCEL_FILE_NAME);
-                if (!res.ok) throw new Error();
+                if(localStorage.getItem("school_db")) { initPortalUX(); return; }
+                const response = await fetch(EXCEL_FILE_NAME);
+                if (!response.ok) throw new Error("File not found");
                 
-                const buffer = await res.arrayBuffer();
-                const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+                const arrayBuffer = await response.arrayBuffer();
+                const data = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
                 
-                // Targets the sheet specifically named "Master_Data"
-                const targetSheet = workbook.Sheets["Master_Data"];
-                if(!targetSheet) {
-                    document.getElementById("loadingDbScreen").innerText = "Error: Sheet named 'Master_Data' not found inside data.xlsx.";
+                const sheetName = "Master_Data";
+                const worksheet = workbook.Sheets[sheetName];
+                if (!worksheet) {
+                    document.getElementById("loadingDbScreen").innerHTML = `<span class="text-red-600 font-bold">त्रुटि: एक्सेल शीट में "Master_Data" नाम का टैब नहीं मिला।</span>`;
                     return;
                 }
                 
-                const rows = XLSX.utils.sheet_to_json(targetSheet);
-                const parsedDb = {};
+                const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+                const structuredDb = {};
                 
-                rows.forEach(row => {
-                    if(row["Enroll No"]) {
-                        const enrollKey = String(row["Enroll No"]).trim();
-                        parsedDb[enrollKey] = {
-                            "Enroll No": enrollKey,
-                            "Roll No": String(row["Roll No"] || ""),
-                            "Class": String(row["Class"] || ""),
-                            "Student Name": row["Student Name"] || "",
-                            "Father Name": row["Father Name"] || "",
-                            "Mother Name": row["Mother Name"] || "",
-                            "Mob No": row["Mob No"] || "",
+                jsonRows.forEach(row => {
+                    if (row["Enroll No"]) {
+                        const uniqueEnrollKey = String(row["Enroll No"]).trim();
+                        structuredDb[uniqueEnrollKey] = {
+                            "Enroll No": uniqueEnrollKey,
+                            "Roll No": String(row["Roll No"] || "").trim(),
+                            "Class": String(row["Class"] || "").trim(),
+                            "Student Name": row["Student Name"] || "-",
+                            "Father Name": row["Father Name"] || "-",
+                            "Mother Name": row["Mother Name"] || "-",
+                            "Mob No": row["Mob No"] || "-",
                             "Total Fee": parseFloat(row["Total Fee"] || 0),
                             "Total Paid": parseFloat(row["Total Paid"] || 0),
                             "Due": parseFloat(row["Due"] || 0),
@@ -192,14 +228,19 @@
                         };
                     }
                 });
-                localStorage.setItem("school_db", JSON.stringify(parsedDb));
-                showLoginScreen();
-            } catch(e) {
-                document.getElementById("loadingDbScreen").innerText = "Error parsing data.xlsx. Ensure it's inside your root repository folder.";
+                
+                localStorage.setItem("school_db", JSON.stringify(structuredDb));
+                initPortalUX();
+            } catch (err) {
+                document.getElementById("loadingDbScreen").innerHTML = `
+                    <div class="text-center p-6 bg-red-50 border border-red-200 rounded-2xl max-w-md">
+                        <p class="text-red-700 font-bold text-base">त्रुटि: data.xlsx लोड नहीं हो सकी!</p>
+                        <p class="text-xs text-slate-500 mt-1">सुनिश्चित करें कि एक्सेल फ़ाइल का नाम बिल्कुल <strong>data.xlsx</strong> है और यह आपके GitHub रिपोजिटरी के मुख्य रूट फोल्डर में मौजूद है।</p>
+                    </div>`;
             }
         }
 
-        function showLoginScreen() {
+        function initPortalUX() {
             document.getElementById("loadingDbScreen").classList.add("hidden");
             document.getElementById("loginScreen").classList.remove("hidden");
             lucide.createIcons();
@@ -207,91 +248,177 @@
 
         function login(e) {
             e.preventDefault();
-            if (document.getElementById("passwordInput").value === "123") {
+            const r = document.getElementById("roleSelect").value, p = document.getElementById("passwordInput").value, err = document.getElementById("loginErr");
+            const token = r.includes("Admin") ? "Admin@123" : r.includes("Manager") ? "Manager@123" : r.includes("Principal") ? "Principal@123" : r.includes("Accountant") ? "Accountant@123" : "Clerk@123";
+            if (p === token || p === "123") {
+                activeUser = r; err.classList.add("hidden");
                 document.getElementById("loginScreen").classList.add("hidden");
                 document.getElementById("userDisplay").classList.remove("hidden");
-                document.getElementById("txtActiveRole").innerText = document.getElementById("roleSelect").value;
+                document.getElementById("txtActiveRole").innerText = r;
                 document.getElementById("portalDashboard").classList.remove("hidden");
-            } else { document.getElementById("loginErr").classList.remove("hidden"); }
+            } else { err.classList.remove("hidden"); }
         }
 
-        function updateDashboardBreakdownTable() {
+        // Render the Ledger records in Student Info Card component
+        function updateStudentLedgerBreakdown() {
             const tbody = document.getElementById("dbReceiptRows");
-            let rowsHtml = "", hasHistory = false;
+            let rowsHtml = "", recordsCount = 0;
+            
             for (let i = 1; i <= 5; i++) {
-                let fee = currentStudent[`T${i} Fee`], date = currentStudent[`T${i} Date`] || "-", tx = currentStudent[`T${i} Tr ID`] || "-";
-                if (fee && parseFloat(fee) > 0) {
-                    hasHistory = true;
-                    rowsHtml += `<tr class="${lastSlot === 'T'+i ? 'bg-emerald-50 font-bold' : ''}"><td class="p-2 text-center">T${i}</td><td class="p-2 text-center">₹${fee}</td><td class="p-2 text-center">${date}</td><td class="p-2 text-center">${tx}</td></tr>`;
+                let f = currentStudent[`T${i} Fee`], d = currentStudent[`T${i} Date`] || "-", tx = currentStudent[`T${i} Tr ID`] || "-";
+                if (f && parseFloat(f) > 0) {
+                    recordsCount++;
+                    rowsHtml += `
+                        <tr class="${lastSlot === 'T'+i ? 'bg-emerald-50 font-semibold text-slate-900' : 'text-slate-700 hover:bg-slate-50'} border-b">
+                            <td class="p-2.5 text-center font-bold">Term ${i}</td>
+                            <td class="p-2.5 text-center">₹${parseFloat(f).toLocaleString('en-IN')}</td>
+                            <td class="p-2.5 text-center text-slate-500">${d}</td>
+                            <td class="p-2.5 text-center font-mono text-[11px] text-slate-600">${tx}</td>
+                        </tr>`;
                 }
             }
-            tbody.innerHTML = hasHistory ? rowsHtml : `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">No historical breakdowns recorded.</td></tr>`;
+            tbody.innerHTML = recordsCount > 0 ? rowsHtml : `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">इस छात्र का पिछला कोई भुगतान रिकॉर्ड दर्ज नहीं है।</td></tr>`;
         }
 
         function searchStudent(e) {
             e.preventDefault();
-            const enrollNum = document.getElementById("enrollSearch").value.trim();
-            const cls = document.getElementById("classSearch").value;
+            const searchKey = document.getElementById("enrollSearch").value.trim();
+            const targetClass = document.getElementById("classSearch").value.trim();
             const db = JSON.parse(localStorage.getItem("school_db") || "{}");
             
-            if (db[enrollNum] && db[enrollNum]["Class"] === cls) {
-                currentStudent = db[enrollNum];
+            // Handles search mapping elegantly for cross-compatibility
+            let foundRecord = db[searchKey];
+            if(!foundRecord) {
+                for(let key in db) {
+                    if(db[key]["Roll No"] === searchKey && db[key]["Class"] === targetClass) {
+                        foundRecord = db[key]; break;
+                    }
+                }
+            }
+
+            if (foundRecord && String(foundRecord["Class"]).trim() === targetClass) {
+                currentStudent = foundRecord; lastPaymentAmount = 0; lastSlot = "";
                 document.getElementById("pName").innerText = currentStudent["Student Name"];
                 document.getElementById("pFather").innerText = currentStudent["Father Name"];
                 document.getElementById("pMother").innerText = currentStudent["Mother Name"];
                 document.getElementById("pMobile").innerText = currentStudent["Mob No"];
-                document.getElementById("mTotal").innerText = "₹" + currentStudent["Total Fee"];
-                document.getElementById("mPaid").innerText = "₹" + currentStudent["Total Paid"];
-                document.getElementById("mDue").innerText = "₹" + currentStudent["Due"];
-                updateDashboardBreakdownTable();
+                
+                document.getElementById("mTotal").innerText = "₹" + currentStudent["Total Fee"].toLocaleString('en-IN');
+                document.getElementById("mPaid").innerText = "₹" + currentStudent["Total Paid"].toLocaleString('en-IN');
+                document.getElementById("mDue").innerText = "₹" + currentStudent["Due"].toLocaleString('en-IN');
+                
+                updateStudentLedgerBreakdown();
                 document.getElementById("workspaceGrid").classList.remove("hidden");
                 document.getElementById("btnPrintReceipt").classList.add("hidden");
-            } else { alert("Student records not found! Double check your Enroll No and Class match."); }
+            } else { 
+                alert("छात्र रिकॉर्ड नहीं मिला! कृपया सही Enroll No/अनुक्रमांक और कक्षा की जांच करें।"); 
+            }
         }
 
         function submitPayment(e) {
             e.preventDefault();
             const amt = parseFloat(document.getElementById("payAmt").value);
-            if (amt > currentStudent["Due"]) { alert("Collected amount cannot cross overall due balance!"); return; }
+            const dueVal = parseFloat(currentStudent["Due"]) || 0;
+            if (amt > dueVal) { alert("दर्ज की गई राशि बकाया शेष से अधिक नहीं हो सकती!"); return; }
+            
+            lastPaymentAmount = amt;
+            lastTxDate = new Date().toLocaleDateString('en-IN');
+            lastTxId = "MGIC-2026-" + Math.floor(100000 + Math.random() * 900000);
             
             currentStudent["Total Paid"] += amt;
-            currentStudent["Due"] -= amt;
+            currentStudent["Due"] = Math.max(0, dueVal - amt);
             
             for(let i = 1; i <= 5; i++) {
                 if(!currentStudent[`T${i} Fee`] || parseFloat(currentStudent[`T${i} Fee`]) === 0) {
                     currentStudent[`T${i} Fee`] = amt;
-                    currentStudent[`T${i} Date`] = new Date().toLocaleDateString('en-IN');
-                    currentStudent[`T${i} Tr ID`] = "MGIC-2026-" + Math.floor(10000 + Math.random() * 90000);
+                    currentStudent[`T${i} Date`] = lastTxDate;
+                    currentStudent[`T${i} Tr ID`] = lastTxId;
                     lastSlot = `T${i}`;
                     break;
                 }
             }
+
+            // Sync structural database locally
             const db = JSON.parse(localStorage.getItem("school_db"));
             db[currentStudent["Enroll No"]] = currentStudent;
             localStorage.setItem("school_db", JSON.stringify(db));
 
-            document.getElementById("mPaid").innerText = "₹" + currentStudent["Total Paid"];
-            document.getElementById("mDue").innerText = "₹" + currentStudent["Due"];
+            // Refresh dashboards dynamically
+            document.getElementById("mPaid").innerText = "₹" + currentStudent["Total Paid"].toLocaleString('en-IN');
+            document.getElementById("mDue").innerText = "₹" + currentStudent["Due"].toLocaleString('en-IN');
             document.getElementById("payAmt").value = "";
-            updateDashboardBreakdownTable();
-            document.getElementById("btnPrintReceipt").classList.remove("hidden");
+            updateStudentLedgerBreakdown();
             
+            document.getElementById("btnPrintReceipt").classList.remove("hidden");
             const t = document.getElementById("toast"); t.classList.remove("hidden");
-            setTimeout(() => t.classList.add("hidden"), 3000);
+            setTimeout(() => t.classList.add("hidden"), 3500);
         }
 
         function printReceipt() {
+            if (!currentStudent || lastPaymentAmount === 0) { alert("प्रिंट करने से पहले कृपया भुगतान पूरा करें!"); return; }
             const area = document.getElementById("printOverlay"); area.innerHTML = "";
+            
             let rowsHtml = "";
             for (let i = 1; i <= 5; i++) {
-                let fee = currentStudent[`T${i} Fee`];
-                if(fee) { rowsHtml += `<tr class="text-[11px] border-b"><td class="p-1 border text-center">T${i}</td><td class="p-1 border text-center">₹${fee}</td><td class="p-1 border text-center">${currentStudent[`T${i} Date`]}</td><td class="p-1 border text-center font-mono">${currentStudent[`T${i} Tr ID`]}</td></tr>`; }
+                let f = currentStudent[`T${i} Fee`];
+                if(f && parseFloat(f) > 0) { 
+                    rowsHtml += `
+                        <tr class="${lastSlot === 'T'+i ? 'bg-slate-100 font-bold' : ''} text-[11px] border-b">
+                            <td class="p-1.5 border text-center font-bold">Term ${i}</td>
+                            <td class="p-1.5 border text-center font-mono">₹${parseFloat(f).toLocaleString('en-IN')}</td>
+                            <td class="p-1.5 border text-center text-slate-600">${currentStudent[`T${i} Date`]}</td>
+                            <td class="p-1.5 border text-center font-mono text-[10px] text-slate-700">${currentStudent[`T${i} Tr ID`]}</td>
+                        </tr>`; 
+                }
             }
-            ["Student Copy", "Office Copy"].forEach(label => {
-                area.innerHTML += `<div class="receipt-copy"><div class="receipt-inner-border"><div><div class="text-center border-b pb-1 mb-2"><h2 class="text-sm font-bold text-blue-900">MAHARSHI GARGEY INTERMEDIATE COLLEGE</h2><span class="text-[9px] bg-slate-900 text-white px-2 py-0.5 rounded inline-block uppercase">${label}</span></div><div class="grid grid-cols-2 text-[11px] mb-2 bg-slate-50 p-2 rounded border"><div>Name: <strong>${currentStudent["Student Name"]}</strong></div><div>Enroll No: <span class="font-bold font-mono">${currentStudent["Enroll No"]}</span></div><div>Father: ${currentStudent["Father Name"]}</div><div>Class: Class ${currentStudent["Class"]} (Roll No: ${currentStudent["Roll No"]})</div></div><table class="w-full border text-left mb-2"><thead><tr class="bg-slate-200 text-[10px] text-center font-bold"><th class="p-1 border">Term</th><th class="p-1 border">Amount</th><th class="p-1 border">Date</th><th class="p-1 border">Transaction ID</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><div><div class="bg-slate-100 p-1.5 rounded text-[11px] grid grid-cols-3 text-center font-bold border"><div><span class="block text-[8px] text-slate-500">Total Fee</span>₹${currentStudent["Total Fee"]}</div><div class="text-emerald-700 border-x"><span class="block text-[8px] text-slate-500">Total Paid</span>₹${currentStudent["Total Paid"]}</div><div class="text-rose-600"><span class="block text-[8px] text-slate-500">Net Due</span>₹${currentStudent["Due"]}</div></div><div class="flex justify-between items-end mt-4 text-[10px] text-slate-500"><div class="italic border-t border-dashed pt-1">Parent Signature</div><div class="text-center border-t w-24 pt-1 font-bold">Cashier</div></div></div></div></div>`;
+
+            ["Student Copy (छात्र प्रति)", "Office Copy (कार्यालय प्रति)"].forEach(label => {
+                area.innerHTML += `
+                    <div class="receipt-copy">
+                        <div class="receipt-inner-border">
+                            <div>
+                                <div class="text-center border-b border-slate-300 pb-1.5 mb-2.5">
+                                    <h2 class="text-base font-bold text-blue-900 tracking-tight">MAHARSHI GARGEY INTERMEDIATE COLLEGE</h2>
+                                    <h3 class="text-xs font-bold text-slate-700 mt-0.5">महर्षि गार्गेय इण्टरमीडिएट कॉलेज</h3>
+                                    <p class="text-[9px] text-slate-500">खरगपुर, महजना, हंडिया, प्रयागराज (UP) - 221005</p>
+                                    <span class="text-[9px] bg-slate-900 text-white px-3 py-0.5 rounded-full font-bold uppercase tracking-wider mt-1.5 inline-block">${label}</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] mb-2.5 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                    <div><span class="text-slate-400">छात्र का नाम:</span> <strong class="text-slate-900">${currentStudent["Student Name"]}</strong></div>
+                                    <div><span class="text-slate-400">Enroll No:</span> <span class="font-bold font-mono">${currentStudent["Enroll No"]}</span></div>
+                                    <div><span class="text-slate-400">पिता का नाम:</span> <span class="font-medium">${currentStudent["Father Name"]}</span></div>
+                                    <div><span class="text-slate-400">कक्षा:</span> <span class="font-bold">Class ${currentStudent["Class"]} (Roll: ${currentStudent["Roll No"] || '-'})</span></div>
+                                </div>
+                                <p class="text-[10px] font-bold text-slate-600 mb-1">भुगतान लेजर विवरण (Term-wise Ledgers Summary):</p>
+                                <table class="w-full border text-left border-collapse border-slate-300">
+                                    <thead>
+                                        <tr class="bg-slate-100 text-[10px] text-center font-bold border-b border-slate-300">
+                                            <th class="p-1 border border-slate-300">Term</th>
+                                            <th class="p-1 border border-slate-300">Amount</th>
+                                            <th class="p-1 border border-slate-300">Date</th>
+                                            <th class="p-1 border border-slate-300">Transaction ID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${rowsHtml}</tbody>
+                                </table>
+                            </div>
+                            <div>
+                                <div class="bg-slate-100 p-2 rounded-lg text-[11px] grid grid-cols-3 text-center font-bold border border-slate-300 mt-2">
+                                    <div><span class="block text-[8px] text-slate-500 uppercase">Total Fee</span>₹${currentStudent["Total Fee"].toLocaleString('en-IN')}</div>
+                                    <div class="text-emerald-700 border-x border-slate-300"><span class="block text-[8px] text-slate-500 uppercase">Total Paid</span>₹${currentStudent["Total Paid"].toLocaleString('en-IN')}</div>
+                                    <div class="text-rose-600"><span class="block text-[8px] text-slate-500 uppercase">Net Due</span>₹${currentStudent["Due"].toLocaleString('en-IN')}</div>
+                                </div>
+                                <div class="flex justify-between items-end mt-5 text-[9px] text-slate-400 px-1">
+                                    <div class="italic border-t border-dashed border-slate-300 pt-1 w-24 text-center">अभिभावक हस्ताक्षर</div>
+                                    <div class="text-center border-t border-dashed border-slate-300 w-24 pt-1 font-bold text-slate-700">अधिकृत क्लर्क</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
             });
             window.print();
         }
+
         function logout() { localStorage.removeItem("school_db"); location.reload(); }
     </script>
 </body>
